@@ -1,5 +1,3 @@
-# INT375-CA2
-
 import pandas as pd
 import matplotlib.pyplot as plt
 import seaborn as sns
@@ -7,24 +5,28 @@ import seaborn as sns
 
 df = pd.read_excel(r"C:\Users\ASUS\Downloads\Hospital_General_Information.xlsx")
 
-print("Data Info:")
+print("Initial Data Info:")
 print(df.info())
 
-print("Missing Values per Column:")
+# missing values
+print("\nMissing Values per Column:")
 print(df.isnull().sum())
 
-df_dropped = df.dropna()
+
 df_filled = df.fillna({
     'Hospital Name': 'Unknown',
     'City': 'Unknown',
     'ZIP Code': 0,
     'Phone Number': 'Not Available'
 })
+
+
 df_filled.to_excel(r"C:\Users\ASUS\Downloads\Hospital_Cleaned.xlsx", index=False)
-print("Cleaned data saved as 'Hospital_Cleaned.xlsx'\n")
 
-#----------------------------
 
+print("\nCleaned data saved as 'Hospital_Cleaned.xlsx'")
+
+#---------------================------------------
 #heatmap
 numeric_cols = df.select_dtypes(include='number').columns
 plt.figure(figsize=(10, 8))
@@ -35,10 +37,11 @@ plt.title("Correlation Heatmap of Numeric Features")
 plt.tight_layout()
 plt.show()
 
+
 sns.set(style="whitegrid")
 
 # histogram
-# Distribution of ZIP Codes
+# Distribution of ZIP Codes (as example - if numeric)
 plt.figure(figsize=(8, 5))
 df['ZIP Code'].dropna().astype(int).plot(kind='hist', bins=20, color='skyblue', edgecolor='black')
 plt.title('Histogram of ZIP Codes')
@@ -65,6 +68,9 @@ plt.xlabel('State')
 plt.ylabel('Number of Hospitals')
 plt.show()
 
+
+
+# scatter plot
 # Scatter plot of Hospital overall rating vs emergency services
 df['Hospital overall rating'] = pd.to_numeric(df['Hospital overall rating'], errors='coerce')
 df_clean = df.dropna(subset=['Hospital overall rating', 'Emergency Services'])
@@ -121,20 +127,24 @@ plt.tight_layout()
 plt.show()
 
 
+#======----------------------=======
 
-#-------------------------------------
 
-
-#T-test
 
 from scipy.stats import ttest_ind
 
+
+
 df['Hospital overall rating'] = pd.to_numeric(df['Hospital overall rating'], errors='coerce')
+
+# Drop rows with missing values in required columns
 df_ttest = df.dropna(subset=['Hospital overall rating', 'Emergency Services'])
 
+# Split into two groups
 group_emergency = df_ttest[df_ttest['Emergency Services'] == 'Yes']['Hospital overall rating']
 group_no_emergency = df_ttest[df_ttest['Emergency Services'] == 'No']['Hospital overall rating']
 
+# Perform independent t-test
 t_stat, p_value = ttest_ind(group_emergency, group_no_emergency, equal_var=False)
 
 print("T-test comparing hospital ratings between Emergency vs Non-Emergency hospitals:")
@@ -142,28 +152,31 @@ print(f"T-statistic: {t_stat:.4f}")
 print(f"P-value: {p_value:.4f}")
 
 if p_value < 0.05:
-    print("Significant difference in ratings (p < 0.05)\n")
+    print("Result: Significant difference in ratings (p < 0.05)")
 else:
-    print("No significant difference in ratings (p ≥ 0.05)\n")
+    print("Result: No significant difference in ratings (p ≥ 0.05)")
 
-
-#chi-square test
-    
+#------
 from scipy.stats import chi2_contingency
 
+# Create a contingency table
 contingency_table = pd.crosstab(df['Hospital Ownership'], df['Emergency Services'])
+
+# Display the table
 print("Contingency Table:")
 print(contingency_table)
 
+# Perform Chi-square test
 chi2_stat, p_val, dof, expected = chi2_contingency(contingency_table)
 
-print("Chi-Square Test between 'Hospital Ownership' and 'Emergency Services':")
+print("\nChi-Square Test between 'Hospital Ownership' and 'Emergency Services':")
 print(f"Chi-square Statistic: {chi2_stat:.4f}")
 print(f"P-value: {p_val:.4f}")
 print(f"Degrees of Freedom: {dof}")
 print("Expected Frequencies Table:\n", expected)
 
+# Interpret result
 if p_val < 0.05:
-    print("Significant association between variables (p < 0.05)")
+    print("Result: Significant association between variables (p < 0.05)")
 else:
-    print("No significant association between variables (p ≥ 0.05)")
+    print("Result: No significant association between variables (p ≥ 0.05)")
